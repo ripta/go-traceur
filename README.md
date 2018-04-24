@@ -45,3 +45,9 @@ Specifically, you'll want the `Uber-Trace-Id`, which consists of four colon-sepa
 - a bitmap flag: sampled(1) or debug(2).
 
 The trace ID is the ID that can be looked up in Zipkin.
+
+## Samples
+
+![Example of Trace view](https://raw.githubusercontent.com/ripta/go-traceur/master/docs/trace.png)
+
+![Example of Span view](https://raw.githubusercontent.com/ripta/go-traceur/master/docs/span.png)
