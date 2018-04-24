@@ -13,21 +13,21 @@ import (
 )
 
 // GenerateSpan creates a new span with a nice name based on the path of the request.
-func generateSpan(t opentracing.Tracer, path string) opentracing.Span {
+func generateSpan(ctx context.Context, path string) (opentracing.Span, context.Context) {
 	name := strings.Replace(path, "/", "-", -1)
 	if path == "/" {
 		name = "ROOT"
 	}
 
-	span := t.StartSpan("upstream-" + name)
+	span, ctx := opentracing.StartSpanFromContext(ctx, "upstream-"+name)
 	ext.SpanKindRPCClient.Set(span)
-	return span
+	return span, ctx
 }
 
 // UpstreamRequest performs a traced request to localhost:8080 with a specific
 // path and rawQuery string. The body from the upstream is passed along as-is.
-func upstreamRequest(ctx context.Context, t opentracing.Tracer, path, rawQuery string) (string, error) {
-	span := generateSpan(t, path)
+func upstreamRequest(ctx context.Context, path, rawQuery string) (string, error) {
+	span, ctx := generateSpan(ctx, path)
 	defer span.Finish()
 
 	url := "http://localhost:8080" + path
@@ -42,7 +42,10 @@ func upstreamRequest(ctx context.Context, t opentracing.Tracer, path, rawQuery s
 	}
 
 	// sheesh...
-	req, nht := nethttp.TraceRequest(t, req.WithContext(opentracing.ContextWithSpan(ctx, span)))
+	req, nht := nethttp.TraceRequest(
+		opentracing.GlobalTracer(),
+		req.WithContext(opentracing.ContextWithSpan(ctx, span)),
+	)
 	defer nht.Finish()
 
 	c := &http.Client{Transport: &nethttp.Transport{}}

@@ -37,9 +37,11 @@ func run() {
 	if err != nil {
 		log.Fatalf("Error initializing tracer: %v", err)
 	}
+
+	opentracing.SetGlobalTracer(t)
 	defer c.Close()
 
-	if err := serve(t); err != nil {
+	if err := serve(); err != nil {
 		log.Fatalf("Error serving: %v", err)
 	}
 }
